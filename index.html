@@ -383,6 +383,30 @@ async function run(){
 btn.onclick = run;
 input.addEventListener("keydown", e => { if(e.key === "Enter") run(); });
 
+(function applyUrlParams(){
+  const params = new URLSearchParams(window.location.search);
+  const mode = params.get("mode");
+  const key = params.get("key");
+  const model = params.get("model");
+  const colorWord = params.get("color_word");
+
+  if(mode){
+    const validModes = ["none","groq","openai","google","anthropic","ollama","lmstudio"];
+    if(validModes.includes(mode)){
+      providerSel.value = mode;
+      updateFieldsForProvider();
+    }
+  }
+
+  if(key) apiKeyInput.value = key;
+  if(model) modelText.value = model;
+
+  if(colorWord){
+    input.value = colorWord;
+    run();
+  }
+})();
+
 const starLayer = document.getElementById("starLayer");
 const STAR_COUNT = 70;
 for(let i=0;i<STAR_COUNT;i++){
