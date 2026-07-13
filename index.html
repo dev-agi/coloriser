@@ -467,9 +467,37 @@ function renderHistory(){
   });
 }
 
+const COOLDOWN_MS = 4000;
+const COOLDOWN_KEY = "coloriser_last_request";
+
+function getCooldownRemaining(){
+  try{
+    const last = Number(localStorage.getItem(COOLDOWN_KEY) || 0);
+    const remaining = COOLDOWN_MS - (Date.now() - last);
+    return remaining > 0 ? remaining : 0;
+  }catch(e){
+    return 0;
+  }
+}
+
+function markRequestTime(){
+  try{ localStorage.setItem(COOLDOWN_KEY, String(Date.now())); }catch(e){}
+}
+
 async function run(){
   const word = input.value.trim();
   if(!word) return;
+
+  const remaining = getCooldownRemaining();
+  if(remaining > 0){
+    const secs = Math.ceil(remaining / 1000);
+    box.style.background = "rgba(22,22,29,.8)";
+    box.style.borderColor = "#2a2a33";
+    box.innerHTML = '<span class="placeholder">Çok hızlı gidiyorsun, ' + secs + ' saniye bekle...</span>';
+    return;
+  }
+  markRequestTime();
+
   btn.disabled = true;
   box.style.background = "rgba(22,22,29,.8)";
   box.style.borderColor = "#2a2a33";
