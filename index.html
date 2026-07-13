@@ -100,10 +100,10 @@ body{background:#0b0b0f;overflow-x:hidden}
 
 <div id="settingsOverlay"></div>
 <div id="settings">
-<h3>Ayarlar</h3>
-<label>AI Provider (opsiyonel)</label>
+<h3>Settings</h3>
+<label>AI Provider (optional)</label>
 <select id="provider">
-<option value="none">Kullanma (yerel algoritma)</option>
+<option value="none">Don't use (local algorithm)</option>
 <option value="groq">Groq</option>
 <option value="openai">OpenAI (ChatGPT)</option>
 <option value="google">Google Gemini</option>
@@ -115,25 +115,25 @@ body{background:#0b0b0f;overflow-x:hidden}
 <label id="apiKeyLabel">API Key</label>
 <input id="apiKey" placeholder="sk-... / gsk_... / AIza...">
 
-<label id="baseUrlLabel" style="display:none">Sunucu Adresi (IP:Port)</label>
+<label id="baseUrlLabel" style="display:none">Server Address (IP:Port)</label>
 <input id="baseUrl" style="display:none" placeholder="http://localhost:11434">
 
 <label id="modelLabel">Model</label>
 <div id="modelRow" style="display:flex;gap:8px">
-<input id="modelText" placeholder="model adı yaz (örn. llama3, gpt-4o-mini)" style="flex:1">
-<button id="fetchModelsBtn" type="button" style="display:none;padding:0 12px;border-radius:10px;border:1.5px solid #2a2a33;background:#0e0e13;color:#ccc;font-size:12px;cursor:pointer;white-space:nowrap">Getir</button>
+<input id="modelText" placeholder="type model name (e.g. llama3, gpt-4o-mini)" style="flex:1">
+<button id="fetchModelsBtn" type="button" style="display:none;padding:0 12px;border-radius:10px;border:1.5px solid #2a2a33;background:#0e0e13;color:#ccc;font-size:12px;cursor:pointer;white-space:nowrap">Fetch</button>
 </div>
 <select id="modelSelect" style="display:none;margin-top:8px"></select>
 <div id="modelStatus"></div>
 
-<div id="settingsHint">Key/model girmezsen ya da "Kullanma" seçersen, kelime yerel bir hash algoritmasıyla renklendirilir (Roblox isim renklendirme sistemi gibi).</div>
+<div id="settingsHint">If you leave the key/model empty or select "Don't use", the word is colorized with a local hash algorithm (like the Roblox name-coloring system).</div>
 </div>
 <button id="settingsBtn">⚙</button>
 
 <div id="historyOverlay"></div>
 <div id="historyPanel">
-<h3>Renk Geçmişi</h3>
-<div id="historyList"><div class="historyEmpty">Henüz renk üretilmedi.</div></div>
+<h3>Color History</h3>
+<div id="historyList"><div class="historyEmpty">No colors generated yet.</div></div>
 </div>
 <button id="historyBtn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8a9 9 0 1 1 2.5 8.5"/><path d="M3 4v4h4"/><path d="M12 7v5l3 2"/></svg></button>
 
@@ -315,12 +315,12 @@ async function fetchModelsForCurrentProvider(){
   if(p !== "ollama" && p !== "lmstudio") return;
   const baseUrl = baseUrlInput.value.trim() || DEFAULT_URLS[p];
   modelSelect.innerHTML = "";
-  modelStatus.textContent = "Modeller yükleniyor...";
+  modelStatus.textContent = "Loading models...";
   try{
     const models = p === "ollama" ? await fetchOllamaModels(baseUrl) : await fetchLmStudioModels(baseUrl);
     if(!models.length){
       modelSelect.style.display = "none";
-      modelStatus.textContent = p === "ollama" ? "Model bulunamadı. Terminalde: ollama pull llama3" : "Model bulunamadı. LM Studio'da bir model yükleyip Local Server'ı başlat.";
+      modelStatus.textContent = p === "ollama" ? "No models found. In your terminal: ollama pull llama3" : "No models found. Load a model in LM Studio and start the Local Server.";
       return;
     }
     models.forEach(m => {
@@ -330,15 +330,15 @@ async function fetchModelsForCurrentProvider(){
       modelSelect.appendChild(opt);
     });
     modelSelect.style.display = "block";
-    modelStatus.textContent = models.length + " model bulundu, listeden seçebilirsin.";
+    modelStatus.textContent = models.length + " models found, pick one from the list.";
     modelSelect.onchange = () => { modelText.value = modelSelect.value; };
     if(!modelText.value) modelText.value = models[0];
     modelSelect.value = modelText.value;
   }catch(e){
     modelSelect.style.display = "none";
     modelStatus.textContent = p === "ollama"
-      ? "Bağlanılamadı. Ollama çalışıyor mu? Terminalde 'OLLAMA_ORIGINS=* ollama serve' ile başlatmayı dene, adresi kontrol et."
-      : "Bağlanılamadı. LM Studio'da Local Server sekmesinden 'Start Server'a bastın mı, adresi kontrol et.";
+      ? "Couldn't connect. Is Ollama running? Try starting it with 'OLLAMA_ORIGINS=* ollama serve' and check the address."
+      : "Couldn't connect. Did you start the server from the Local Server tab in LM Studio? Check the address.";
   }
 }
 fetchModelsBtn.addEventListener("click", fetchModelsForCurrentProvider);
@@ -366,7 +366,7 @@ function updateFieldsForProvider(){
 
   if(!isNone){
     modelText.value = DEFAULT_MODELS[p] || "";
-    modelText.placeholder = isLocal ? "Getir'e bas veya model adını elle yaz" : "model adı";
+    modelText.placeholder = isLocal ? "Click Fetch or type the model name manually" : "model name";
   }
 
 }
@@ -436,7 +436,7 @@ renderHistory();
 function renderHistory(){
   const list = document.getElementById("historyList");
   if(!colorHistory.length){
-    list.innerHTML = '<div class="historyEmpty">Henüz renk üretilmedi.</div>';
+    list.innerHTML = '<div class="historyEmpty">No colors generated yet.</div>';
     return;
   }
   list.innerHTML = colorHistory.map((h, i) => `
@@ -446,7 +446,7 @@ function renderHistory(){
         <div class="historyWord">${h.word}</div>
         <div class="historyHex">${h.hex.toUpperCase()} · ${h.name}</div>
       </div>
-      <button class="historyDelete" data-index="${i}" title="Sil">✕</button>
+      <button class="historyDelete" data-index="${i}" title="Remove">✕</button>
     </div>
   `).join("");
   list.querySelectorAll(".historyItem").forEach(item => {
@@ -469,6 +469,7 @@ function renderHistory(){
 
 const COOLDOWN_MS = 4000;
 const COOLDOWN_KEY = "coloriser_last_request";
+let cooldownInterval = null;
 
 function getCooldownRemaining(){
   try{
@@ -484,16 +485,35 @@ function markRequestTime(){
   try{ localStorage.setItem(COOLDOWN_KEY, String(Date.now())); }catch(e){}
 }
 
+function showCooldown(){
+  if(cooldownInterval) clearInterval(cooldownInterval);
+  btn.disabled = true;
+
+  const tick = () => {
+    const remaining = getCooldownRemaining();
+    if(remaining <= 0){
+      clearInterval(cooldownInterval);
+      cooldownInterval = null;
+      btn.disabled = false;
+      box.innerHTML = '<span class="placeholder">your color will appear here</span>';
+      return;
+    }
+    const secs = Math.ceil(remaining / 1000);
+    box.style.background = "rgba(22,22,29,.8)";
+    box.style.borderColor = "#2a2a33";
+    box.innerHTML = '<span class="placeholder">Slow down, wait ' + secs + 's...</span>';
+  };
+  tick();
+  cooldownInterval = setInterval(tick, 250);
+}
+
 async function run(){
   const word = input.value.trim();
   if(!word) return;
 
   const remaining = getCooldownRemaining();
   if(remaining > 0){
-    const secs = Math.ceil(remaining / 1000);
-    box.style.background = "rgba(22,22,29,.8)";
-    box.style.borderColor = "#2a2a33";
-    box.innerHTML = '<span class="placeholder">Çok hızlı gidiyorsun, ' + secs + ' saniye bekle...</span>';
+    showCooldown();
     return;
   }
   markRequestTime();
@@ -524,6 +544,8 @@ async function run(){
 
 btn.onclick = run;
 input.addEventListener("keydown", e => { if(e.key === "Enter") run(); });
+
+if(getCooldownRemaining() > 0) showCooldown();
 
 (function applyUrlParams(){
   const params = new URLSearchParams(window.location.search);
